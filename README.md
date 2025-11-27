@@ -1,5 +1,5 @@
 # FunCap – Updated for IDA Pro 9.x
-*A modernized fork of the original FunCap function call capture tool*
+
 
 ## 📌 Overview
 **FunCap** is a debugging-time function call capture script originally written by **deresz** under the **GPL-2.0** license.  
