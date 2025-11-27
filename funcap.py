@@ -54,6 +54,7 @@ from ida_funcs import *
 from ida_dbg import *
 import ida_idd
 from six.moves import range
+import ida_ida
 
 # utility functions
 
@@ -365,15 +366,37 @@ class FunCapHook(DBG_Hooks):
 
 
     def get_num_args_stack(self, addr):
-        '''
-        Get the size of arguments frame
+        """
+        Get the number of stack arguments for the function containing `addr`.
 
-        @param addr: address belonging to a function
+        Some functions (thunks, stubs, bad analysis, imported funcs, etc.)
+        don't have a proper frame or argsize; in that case we just return 0
+        instead of throwing TypeError.
+        """
+        frame_id = get_func_attr(addr, FUNCATTR_FRAME)
+        arg_size = get_func_attr(addr, FUNCATTR_ARGSIZE)
+        frame_size = get_frame_size(addr)
 
-        '''
+        # If IDA hasn't created a frame or arg info, assume 0 stack args
+        if frame_id in (None, BADADDR) or frame_size is None or arg_size is None:
+            return 0
 
-        argFrameSize = get_struc_size(get_func_attr(addr, FUNCATTR_FRAME)) - get_frame_size(addr) + get_func_attr(addr, FUNCATTR_ARGSIZE)
-        return argFrameSize / (self.bits/8)
+        frame_struct_size = get_struc_size(frame_id)
+        if frame_struct_size is None:
+            return 0
+
+        try:
+            argFrameSize = frame_struct_size - frame_size + arg_size
+        except TypeError:
+            # Any weird combination? Just bail out gracefully.
+            return 0
+
+        if argFrameSize <= 0:
+            return 0
+
+        # number of arguments = bytes / word-size
+        return int(argFrameSize // (self.bits // 8))
+
 
     def get_caller(self):
 
@@ -940,7 +963,7 @@ class FunCapHook(DBG_Hooks):
         '''
         Return next instruction to ea
         '''
-        end = get_inf_structure().get_maxEA()
+        end = ida_ida.inf_get_max_ea()
         return next_head(ea, end)
 
     def prev_ins(self, ea):
