@@ -53,7 +53,11 @@ from ida_bytes import *
 from ida_funcs import *
 from ida_dbg import *
 import ida_idd
-from six.moves import range
+try:
+    from six.moves import range  # use six if it's available
+except ModuleNotFoundError:
+    # Fallback for environments (like your current IDA setup) without six
+    range = range  # built-in range in Python 3
 import ida_ida
 
 # utility functions
