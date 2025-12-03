@@ -20,6 +20,9 @@ Original repository:
 - Added safe fallback behavior when IDA cannot determine frame size.
 - Ensures reliable call/ret handling even when IDA analysis is incomplete.
 
+### ✔ Remove the dependency on six
+- Patched the mandatary importing of `six`
+- Add adoption of python build-in "range"
 
 ## 🚀 Usage
 1. Copy `funcap.py` into your IDA script or plugin directory.
